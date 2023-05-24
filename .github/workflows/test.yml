@@ -25,6 +25,8 @@ jobs:
         run: |
           source ${CATKIN_WS}/devel/setup.bash
           rsync -av ./ ${CATKIN_WS}/src/pimouse_run_corridor/
+          cd ${CATKIN_WS}/src/
+          git clone --depth=1 https://github.com/githirade/pimouse_ros.git
           cd ${CATKIN_WS} && catkin_make
 
       - name: Prepare dummy device file

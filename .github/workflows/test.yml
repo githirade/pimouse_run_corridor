@@ -1,0 +1,37 @@
+name: rostest
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-20.04
+    env:
+      CATKIN_WS: /home/runner/work/catkin_ws
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Setup ros
+        uses: ros-tooling/setup-ros@v0.2
+        with:
+          required-ros-distributions: noetic
+      
+      - name: Init workspace
+        run: |
+          source /opt/ros/noetic/setup.bash
+          mkdir -p ${CATKIN_WS}/src && cd ${CATKIN_WS} && catkin_make
+          ln -s ${GITHUB_WORKSPACE} ${CATKIN_WS}/src/
+          
+      - name: sync workspace
+        run: |
+          source ${CATKIN_WS}/devel/setup.bash
+          rsync -av ./ ${CATKIN_WS}/src/pimouse_run_corridor/
+          cd ${CATKIN_WS} && catkin_make
+
+      - name: Prepare dummy device file
+        run: |
+          bash -xve ./test/actions_prepare_dummy_files.bash
+
+      - name: Run tests
+        run: |
+          source ${CATKIN_WS}/devel/setup.bash
+          rostest pimouse_run_corridor wall_stop.launch
